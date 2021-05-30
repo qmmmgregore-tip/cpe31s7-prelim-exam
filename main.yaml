@@ -1,0 +1,44 @@
+---
+- name: Plays for both VMs
+  hosts: all
+  vars:
+    username: qmmmgregore-tip
+    password: PrelimExam
+    studentnumber: 1520377
+    groupname: sysad2
+
+  tasks:
+
+  - name: Ping both VMs
+    ansible.builtin.ping:
+
+  - name: Motd in '/etc/motd'
+    ansible.builtin.lineinfile:
+      path: '/etc/motd'
+      line: 'Ansible Managed by {{ studentnumber }}'
+      state: present
+
+  - name: User with a password
+    ansible.builtin.user:
+      name: "{{ username }}"
+      state: present
+      password: "{{ password | password_hash('sha512') }}"
+
+  - name: User passwordless sudoer
+    ansible.builtin.lineinfile:
+      path: '/etc/sudoers'
+      line: '{{ username }} ALL=(ALL) NOPASSWD: ALL'
+      state: present
+
+  - name: Group named 'sysad2'
+    ansible.builtin.group:
+      name: "{{ groupname }}"
+      state: present
+
+  - name: EPEL repository
+    ansible.builtin.dnf:
+      name: epel-release
+      state: latest
+    when: ansible_distribution == "CentOS"
+
+
